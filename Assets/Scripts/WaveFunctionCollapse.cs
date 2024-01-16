@@ -94,69 +94,17 @@ public class WaveFunctionCollapse : MonoBehaviour
                         options.Add(t);
                     }
 
-                    if(y > 0)
-                    {
-                        Cell up = gridComponents[x + (y - 1) * dimensions];
-                        List<Tile> validOptions = new List<Tile>();
-
-                        foreach(Tile possibleOptions in up.tileOptions)
-                        {
-                            var validOption = Array.FindIndex(tileObjects, obj => obj == possibleOptions);
-                            var valid = tileObjects[validOption].downNeighbours;
-
-                            validOptions = validOptions.Concat(valid).ToList();
-                        }
-
-                        CheckValidity(options, validOptions);
-                    }
-
-                    if(x < dimensions - 1)
-                    {
-                        Cell left = gridComponents[x + 1 + y * dimensions];
-                        List<Tile> validOptions = new List<Tile>();
-
-                        foreach(Tile possibleOptions in left.tileOptions)
-                        {
-                            var validOption = Array.FindIndex(tileObjects, obj => obj == possibleOptions);
-                            var valid = tileObjects[validOption].rightNeighbours;
-
-                            validOptions = validOptions.Concat(valid).ToList();
-                        }
-
-                        CheckValidity(options, validOptions);
-                    }
-
-                    if (y < dimensions - 1)
-                    {
-                        Cell down = gridComponents[x + (y+1) * dimensions];
-                        List<Tile> validOptions = new List<Tile>();
-
-                        foreach (Tile possibleOptions in down.tileOptions)
-                        {
-                            var validOption = Array.FindIndex(tileObjects, obj => obj == possibleOptions);
-                            var valid = tileObjects[validOption].upNeighbours;
-
-                            validOptions = validOptions.Concat(valid).ToList();
-                        }
-
-                        CheckValidity(options, validOptions);
-                    }
-
-                    if (x > 0)
-                    {
-                        Cell right = gridComponents[x - 1 + y * dimensions];
-                        List<Tile> validOptions = new List<Tile>();
-
-                        foreach (Tile possibleOptions in right.tileOptions)
-                        {
-                            var validOption = Array.FindIndex(tileObjects, obj => obj == possibleOptions);
-                            var valid = tileObjects[validOption].leftNeighbours;
-
-                            validOptions = validOptions.Concat(valid).ToList();
-                        }
-
-                        CheckValidity(options, validOptions);
-                    }
+	  				int upGridIndex = x + (y - 1) * dimensions;
+                    CheckDirection(IsUp(), upGridIndex);
+	   
+	  				int downGridIndex = x + (y + 1) * dimensions;
+                    CheckDirection(IsDown(), downGridIndex);
+	   
+	  				int leftGridIndex = x + 1 + y * dimensions;
+                    CheckDirection(IsLeft(), leftGridIndex);
+	   
+	  				int rightGridIndex = x - 1 + y * dimensions;
+                    CheckDirection(IsRight(), rightGridIndex);                    
 
                     Tile[] newTileList = new Tile[options.Count];
 
@@ -177,6 +125,60 @@ public class WaveFunctionCollapse : MonoBehaviour
             StartCoroutine(CheckEntropy());
         }
     }
+
+ 	bool IsUp()
+  	{
+		return y > 0;
+	}
+
+  	bool IsDown()
+  	{
+		return y < dimensions - 1;
+	}
+
+  	bool IsLeft()
+  	{
+		return x < dimensions - 1;
+	}
+
+  	bool IsRight()
+  	{
+		return x > 0;
+	}
+
+ 	Tile ValidTile(int index)
+  	{
+   		switch(direction)
+		{
+			case IsUp():
+   				return tileObjects[index].rightNeighbours;
+	   		case IsDown():
+	  			return tileObjects[index].upNeighbours;
+			case IsLeft():
+				return tileObjects[index].downNeighbours;
+	  		case IsRight():
+	 			return tileObjects[index].leftNeighbours;
+		}
+   	}
+
+ 	void CheckDirection(bool direction, int gridIndex)
+  	{
+   		if(direction)
+		{
+			Cell newCell = gridComponents[gridIndex];
+			List<Tile> validOptions = new List<Tile>();
+
+			foreach(Tile possibleOptions in newCell.tileOptions)
+			{
+				var validOption = Array.FindIndex(tileObjects, obj => obj == possibleOptions);				
+				var valid = ValidTile(validOption);
+
+				validOptions = validOptions.Concat(valid).ToList();
+			}
+
+			CheckValidity(options, validOptions);
+		}
+   	}
 
     void CheckValidity(List<Tile> optionList, List<Tile> validOption)
     {
